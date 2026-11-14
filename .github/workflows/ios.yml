@@ -1,0 +1,30 @@
+name: Swift core and iOS build
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test deterministic gameplay rules
+        run: swift test
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Build iOS Simulator app
+        run: >-
+          xcodebuild -project MoonCard.xcodeproj -scheme MoonCard
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoonCard-iOS-Simulator
+          path: DerivedData/Build/Products/Debug-iphonesimulator/MoonCard.app
