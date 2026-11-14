@@ -75,6 +75,18 @@ final class GameCoreTests: XCTestCase {
         b.attackCooldown = 0; b.player = Point(8, 7)
         b.attack(hero: Hero.all[0]); XCTAssertEqual(b.enemies[0].hp, 908.8, accuracy: 0.001)
     }
+    func testPortraitCueOnlyForComboFinisherAndSkill() {
+        var b = Battle()
+        b.enemies = [Enemy(id: 1, position: b.player, hp: 1000, boss: false)]
+        b.attack(hero: Hero.all[0]); XCTAssertFalse(b.comicHasPortrait)
+        b.attackCooldown = 0
+        b.attack(hero: Hero.all[0]); XCTAssertFalse(b.comicHasPortrait)
+        b.attackCooldown = 0
+        b.attack(hero: Hero.all[0]); XCTAssertTrue(b.comicHasPortrait)
+        b.skill(hero: Hero.all[0]); XCTAssertTrue(b.comicHasPortrait)
+        b.attackCooldown = 0; b.player = Point(8, 7)
+        b.attack(hero: Hero.all[0]); XCTAssertFalse(b.comicHasPortrait)
+    }
     func testDodgeProtectsAgainstTelegraphedHit() {
         var b = Battle()
         b.enemies = [Enemy(id: 1, position: Point(0, 4), hp: 100, windup: 0.01, boss: false)]

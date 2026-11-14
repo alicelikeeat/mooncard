@@ -18,10 +18,13 @@ struct GameScreen: View {
                 if game.zone == .frontier { battleControls } else { homeControls }
             }.padding(18)
             if game.zone == .frontier, game.battle.comicRemaining > 0 {
-                Text(game.battle.comic).font(.system(size: 30, weight: .black, design: .rounded))
-                    .italic().foregroundStyle(.black).padding(.horizontal, 30).padding(.vertical, 12)
-                    .background(.yellow).overlay(Rectangle().stroke(.black, lineWidth: 4))
-                    .rotationEffect(.degrees(-5)).allowsHitTesting(false)
+                if game.battle.comicHasPortrait {
+                    MangaCutIn(hero: Hero.find(game.comicHeroID), text: game.battle.comic)
+                } else {
+                    Text(game.battle.comic).font(.headline.bold()).padding(12)
+                        .foregroundStyle(.black).background(.yellow)
+                        .overlay(Rectangle().stroke(.black, lineWidth: 2)).allowsHitTesting(false)
+                }
             }
             if game.zone == .frontier, game.battle.outcome != .fighting { resultPanel }
         }
@@ -85,6 +88,8 @@ struct GameScreen: View {
                     let hero = Hero.find(game.progress.party[slot])
                     Button { game.battle.switchHero(slot) } label: {
                         HStack {
+                            HeroPortrait(hero: hero).frame(width: 28, height: 34)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
                             Text(hero.name).fontWeight(game.battle.active == slot ? .black : .regular)
                             ProgressView(value: game.battle.health[slot], total: 120).frame(width: 75)
                             Text("\(Int(game.battle.health[slot]))").font(.caption.monospacedDigit())
@@ -127,14 +132,7 @@ struct GameScreen: View {
                 .font(.footnote).foregroundStyle(.secondary)
             if let draw = game.draw {
                 let hero = Hero.find(draw.heroID)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(hero.legendary ? "✦ LEGENDARY" : "✧ TRAVELER").tracking(4)
-                    Text(hero.name).font(.system(size: 40, weight: .black))
-                    Text(hero.role)
-                    Text(draw.duplicate ? "重复 · 已转换星屑" : "NEW · 新旅伴已登车")
-                }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(hero.legendary ? Color.orange.opacity(0.25) : Color.teal.opacity(0.25),
-                                in: RoundedRectangle(cornerRadius: 16))
+                MangaRecruitCard(hero: hero, duplicate: draw.duplicate)
             }
             Button("召集一次 · 160 星晶") { game.recruit() }.buttonStyle(.borderedProminent)
                 .disabled(game.progress.crystals < 160)
@@ -142,7 +140,10 @@ struct GameScreen: View {
     }
     private var roster: some View {
         ForEach(Hero.all) { hero in
-            VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 16) {
+                HeroPortrait(hero: hero).frame(width: 100, height: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                VStack(alignment: .leading, spacing: 10) {
                 Text("\(hero.name) · \(hero.role)").font(.headline)
                 if game.progress.owned.contains(hero.id) {
                     HStack {
@@ -153,6 +154,7 @@ struct GameScreen: View {
                         }
                     }
                 } else { Text("尚未招募").foregroundStyle(.secondary) }
+                }
             }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
         }

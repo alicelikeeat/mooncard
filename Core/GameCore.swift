@@ -121,6 +121,7 @@ public struct Battle {
     public var comboWindow = 0.0
     public var comic = ""
     public var comicRemaining = 0.0
+    public var comicHasPortrait = false
     private var dash = Point()
     public init() { spawn() }
     private mutating func spawn() {
@@ -153,7 +154,7 @@ public struct Battle {
             show("挥空 · 靠近目标"); return true
         }
         enemies[target].hp -= (hero.attack + bonus) * (combo == 3 ? 1.8 : 1)
-        show(combo == 3 ? "BREAK! 三连击" : "HIT! \(combo)")
+        show(combo == 3 ? "BREAK! 三连击" : "HIT! \(combo)", portrait: combo == 3)
         resolveWave()
         return true
     }
@@ -164,11 +165,13 @@ public struct Battle {
             enemies[i].hp -= hero.attack * 2.3 + bonus
         }
         if hero.id == "moss" { health[active] = min(120, health[active] + 40) }
-        show("\(hero.name) · \(hero.role.components(separatedBy: " · ").last ?? "裂界")")
+        show("\(hero.name) · \(hero.role.components(separatedBy: " · ").last ?? "裂界")", portrait: true)
         resolveWave()
         return true
     }
-    private mutating func show(_ text: String) { comic = text; comicRemaining = 0.65 }
+    private mutating func show(_ text: String, portrait: Bool = false) {
+        comic = text; comicRemaining = 0.65; comicHasPortrait = portrait
+    }
     private mutating func resolveWave() {
         enemies.removeAll { $0.hp <= 0 }
         if enemies.isEmpty {

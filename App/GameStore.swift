@@ -5,6 +5,7 @@ import SwiftUI
     @Published var zone: Zone = .train
     @Published var battle = Battle()
     @Published var notice = "欢迎登车。招募伙伴，前往裂界，建设你的领地。"
+    @Published var comicHeroID = "rook"
     @Published var draw: DrawResult?
     @Published var panel: Panel?
     var movement = Point()
@@ -50,8 +51,18 @@ import SwiftUI
         battle.tick(delta, movement: movement)
         settle()
     }
-    func attack() { guard canAct else { return }; battle.attack(hero: hero, bonus: attackBonus); settle() }
-    func skill() { guard canAct else { return }; battle.skill(hero: hero, bonus: attackBonus); settle() }
+    func attack() {
+        guard canAct else { return }
+        let actor = hero
+        if battle.attack(hero: actor, bonus: attackBonus) { comicHeroID = actor.id }
+        settle()
+    }
+    func skill() {
+        guard canAct else { return }
+        let actor = hero
+        if battle.skill(hero: actor, bonus: attackBonus) { comicHeroID = actor.id }
+        settle()
+    }
     func dodge() { guard canAct else { return }; battle.dodge(direction: movement) }
     func settle() {
         guard battle.outcome == .victory, !rewardClaimed else { return }
